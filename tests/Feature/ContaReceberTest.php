@@ -126,6 +126,50 @@ class ContaReceberTest extends TestCase
         $this->assertDatabaseMissing('contas_receber', ['id' => $conta->id]);
     }
 
+    public function test_cadastro_via_ajax_retorna_json_e_normaliza_valor(): void
+    {
+        $response = $this->withHeaders([
+            'X-Requested-With' => 'XMLHttpRequest',
+            'Accept' => 'application/json',
+        ])->post(route('contas-receber.store'), [
+            'cliente' => 'Cliente AJAX Teste',
+            'valor' => '1.234,56',
+            'data_vencimento' => today()->addDays(10)->toDateString(),
+            'status' => 'pendente',
+            '_filtros' => ['status' => 'pendente', 'busca' => 'AJAX'],
+            '_page' => '1',
+        ]);
+
+        $response->assertOk()->assertJson([
+            'type' => 'success',
+        ]);
+
+        $this->assertStringContainsString('busca=AJAX', $response->json('url'));
+        $this->assertStringContainsString('status=pendente', $response->json('url'));
+
+        $this->assertStringContainsString('Cliente AJAX Teste', $response->json('html'));
+        $this->assertStringContainsString('1.234,56', $response->json('html'));
+
+        $this->assertDatabaseHas('contas_receber', [
+            'cliente' => 'Cliente AJAX Teste',
+            'valor' => 1234.56,
+        ]);
+    }
+
+    public function test_validacao_via_ajax_retorna_422_json(): void
+    {
+        $response = $this->withHeaders([
+            'X-Requested-With' => 'XMLHttpRequest',
+            'Accept' => 'application/json',
+        ])->post(route('contas-receber.store'), [
+            'valor' => '10,00',
+            'status' => 'pendente',
+            'data_vencimento' => today()->addDays(10)->toDateString(),
+        ]);
+
+        $response->assertStatus(422)->assertJsonValidationErrors(['cliente']);
+    }
+
     private function conta(array $atributos = []): ContaReceber
     {
         return ContaReceber::create(array_merge([

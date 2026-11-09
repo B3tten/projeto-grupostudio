@@ -2,29 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ListaContasReceber;
 use App\Models\ContaReceber;
 use Illuminate\Http\Request;
 
 class ContaReceberController extends Controller
 {
+    use ListaContasReceber;
+
     public function index(Request $request)
     {
-        $filtros = collect($request->only(['busca', 'status', 'vencimento_de', 'vencimento_ate']))
-            ->map(fn ($valor) => is_string($valor) ? trim($valor) : null)
-            ->filter(fn ($valor) => $valor !== null && $valor !== '')
-            ->all();
-
-        $query = ContaReceber::query()->filtros($filtros);
-
-        $resumo = [
-            'total' => (float) (clone $query)->sum('valor'),
-        ];
-
-        $contas = $query
-            ->orderByRaw("CASE WHEN status = 'pendente' THEN 0 WHEN status = 'pago' THEN 1 ELSE 2 END")
-            ->orderBy('data_vencimento')
-            ->paginate(10)
-            ->withQueryString();
+        $filtros = $this->filtrosListagem($request);
+        [$contas, $resumo] = $this->dadosListagem($filtros, $request->integer('page', 1));
 
         $editarId = old('_conta_id') ?: $request->integer('editar');
         $contaEdicao = $editarId ? ContaReceber::find($editarId) : null;
@@ -41,9 +30,7 @@ class ContaReceberController extends Controller
     {
         ContaReceber::create($this->validatedData($request));
 
-        return redirect()
-            ->route('contas-receber.index')
-            ->with('success', 'Conta a receber cadastrada com sucesso.');
+        return $this->respostaOperacao($request, 'Conta a receber cadastrada com sucesso.');
     }
 
     public function edit(ContaReceber $conta)
@@ -55,9 +42,7 @@ class ContaReceberController extends Controller
     {
         $conta->update($this->validatedData($request));
 
-        return redirect()
-            ->route('contas-receber.index')
-            ->with('success', 'Conta a receber atualizada com sucesso.');
+        return $this->respostaOperacao($request, 'Conta a receber atualizada com sucesso.');
     }
 
     /**
@@ -74,25 +59,23 @@ class ContaReceberController extends Controller
         ]);
 
         if ($conta->status === 'pago') {
-            return back()->with('warning', 'Esta conta já está recebida.');
+            return $this->respostaOperacao($request, 'Esta conta já está recebida.', 'warning');
         }
 
         if ($conta->status === 'cancelado') {
-            return back()->with('warning', 'Contas canceladas não podem ser recebidas.');
+            return $this->respostaOperacao($request, 'Contas canceladas não podem ser recebidas.', 'warning');
         }
 
         $conta->registrarRecebimento($data['data_pagamento'] ?? null);
 
-        return back()->with('success', 'Recebimento registrado com sucesso.');
+        return $this->respostaOperacao($request, 'Recebimento registrado com sucesso.');
     }
 
-    public function destroy(ContaReceber $conta)
+    public function destroy(Request $request, ContaReceber $conta)
     {
         $conta->delete();
 
-        return redirect()
-            ->route('contas-receber.index')
-            ->with('success', 'Conta a receber removida com sucesso.');
+        return $this->respostaOperacao($request, 'Conta a receber removida com sucesso.');
     }
 
     /**
@@ -100,6 +83,9 @@ class ContaReceberController extends Controller
      */
     private function validatedData(Request $request): array
     {
+        // The money mask submits "1.234,56"; convert it to a database-friendly number.
+        $request->merge(['valor' => $this->normalizarValor($request->input('valor'))]);
+
         $data = $request->validate([
             'cliente' => 'required|string|max:255',
             'descricao' => 'nullable|string|max:255',
@@ -140,5 +126,25 @@ class ContaReceberController extends Controller
         }
 
         return $data;
+    }
+
+    private function normalizarValor($valor)
+    {
+        if (! is_string($valor)) {
+            return $valor;
+        }
+
+        $valor = trim(preg_replace('/[^\d,.\-]/', '', $valor));
+
+        if ($valor === '') {
+            return $valor;
+        }
+
+        if (str_contains($valor, ',')) {
+            $valor = str_replace('.', '', $valor);
+            $valor = str_replace(',', '.', $valor);
+        }
+
+        return $valor;
     }
 }

@@ -24,6 +24,8 @@
                     'submitLabel' => 'Atualizar conta',
                     'cancelDismiss' => true,
                     'prefix' => 'editar',
+                    'filtros' => $filtros ?? [],
+                    'paginaAtual' => $paginaAtual ?? 1,
                 ])
             </div>
         </div>

@@ -293,6 +293,7 @@ app/
     DashboardController.php          # indicadores e gráficos
     ContaReceberController.php       # listagem, CRUD e registrar recebimento
     ContaReceberCargaController.php  # upload e download de modelos
+    Concerns/ListaContasReceber.php  # helpers compartilhados: filtros e resposta AJAX/JSON
   Http/Middleware/
     LogBackendCalls.php              # log de entrada, SQL e saída
   Models/
@@ -307,13 +308,15 @@ database/
 resources/views/
   dashboard/index.blade.php          # dashboard
   contas-receber/
-    index.blade.php                  # listagem, filtros e ações
+    index.blade.php                  # listagem, filtros e ações (AJAX + máscara de moeda)
+    _tabela.blade.php                # tabela + filtros + total, usada pela página e pelo AJAX
     _modal-conta.blade.php           # cadastro
     _modal-editar.blade.php          # edição
     _modal-receber.blade.php         # registrar recebimento
     _modal-excluir.blade.php         # exclusão com campos somente leitura
     _modal-carga.blade.php           # importação
-    _form.blade.php                  # formulário compartilhado
+    _form.blade.php                  # formulário compartilhado (valor com máscara)
+    _filtros-ocultos.blade.php       # carrega os filtros para preservá-los após cada ação
   layouts/app.blade.php              # layout, navegação e estilos globais
 
 routes/web.php                       # rotas do dashboard, CRUD, carga e recebimento
@@ -430,7 +433,7 @@ O detalhamento do processo está em [`docs/USO_DE_IA.md`](docs/USO_DE_IA.md).
 | Descrição do uso de IA | Esta seção + `docs/USO_DE_IA.md` |
 | Documentação do processo | `docs/PROCESSO.md` |
 | Segurança e arquivos sensíveis | `.gitignore` + `docs/SEGURANCA.md` |
-| Qualidade verificável | `tests/Feature/ContaReceberTest.php` (5 testes) |
+| Qualidade verificável | `tests/Feature/ContaReceberTest.php` (7 testes) |
 
 ---
 

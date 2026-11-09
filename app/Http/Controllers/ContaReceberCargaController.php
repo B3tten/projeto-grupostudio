@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ListaContasReceber;
 use App\Services\ContaReceberImportService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class ContaReceberCargaController extends Controller
 {
+    use ListaContasReceber;
+
     public function create()
     {
         return redirect()->route('contas-receber.index', ['carga' => 1]);
@@ -51,9 +54,8 @@ class ContaReceberCargaController extends Controller
             ]);
         }
 
-        $response = redirect()
-            ->route('contas-receber.index')
-            ->with('success', $resultado['importadas'] . ' conta(s) importada(s) com sucesso.');
+        $mensagem = $resultado['importadas'] . ' conta(s) importada(s) com sucesso.';
+        $tipo = 'success';
 
         if (! empty($resultado['erros'])) {
             $detalhes = implode(' ', array_slice($resultado['erros'], 0, 5));
@@ -62,10 +64,12 @@ class ContaReceberCargaController extends Controller
                 $detalhes .= ' ...';
             }
 
-            $response->with('warning', 'Algumas linhas foram ignoradas: ' . $detalhes);
+            $mensagem .= ' Algumas linhas foram ignoradas: ' . $detalhes;
+            $tipo = 'warning';
         }
 
-        return $response;
+        // Keep the previously applied filters when the table is refreshed.
+        return $this->respostaOperacao($request, $mensagem, $tipo);
     }
 
     public function modelo(string $formato)

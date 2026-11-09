@@ -274,7 +274,7 @@ E acesse `http://127.0.0.1:8001`.
 php artisan test
 ```
 
-Resultado esperado: **5 testes passando**. Os testes usam SQLite em memória e não alteram o arquivo `database/database.sqlite`.
+Resultado esperado: **7 testes passando**. Os testes usam SQLite em memória e não alteram o arquivo `database/database.sqlite`.
 
 ---
 
@@ -369,6 +369,6 @@ php artisan serve
 - [ ] `php artisan migrate --seed` executado (22 registros).
 - [ ] `php artisan serve` rodando.
 - [ ] Dashboard abrindo em `http://127.0.0.1:8000`.
-- [ ] (Opcional) `php artisan test` com 5 testes passando.
+- [ ] (Opcional) `php artisan test` com 7 testes passando.
 
 Pronto. Se algo falhar, consulte a tabela de problemas comuns e o log em `storage/logs/laravel.log`.

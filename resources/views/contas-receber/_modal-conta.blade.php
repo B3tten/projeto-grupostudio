@@ -22,6 +22,8 @@
                     'submitLabel' => 'Salvar conta',
                     'cancelDismiss' => true,
                     'prefix' => 'nova',
+                    'filtros' => $filtros ?? [],
+                    'paginaAtual' => $paginaAtual ?? 1,
                 ])
             </div>
         </div>

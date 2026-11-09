@@ -7,14 +7,25 @@
     $statusAtual = old('status', $conta->status ?? 'pendente');
     $vencimentoAtual = old('data_vencimento', $conta && $conta->data_vencimento ? $conta->data_vencimento->format('Y-m-d') : today()->format('Y-m-d'));
     $pagamentoAtual = old('data_pagamento', $conta && $conta->data_pagamento ? $conta->data_pagamento->format('Y-m-d') : '');
+    $valorAtual = old('valor', $conta->valor ?? '');
+
+    // Format the saved/old amount for the right-to-left mask; the server normalizes it back.
+    if (is_numeric($valorAtual)) {
+        $valorAtual = number_format((float) $valorAtual, 2, ',', '.');
+    }
+
+    if ($valorAtual === null || $valorAtual === '') {
+        $valorAtual = '0,00';
+    }
 @endphp
 
-<form action="{{ $action }}" method="POST" novalidate data-conta-form>
+<form action="{{ $action }}" method="POST" novalidate data-conta-form data-ajax-form data-form-mode="{{ $method === 'POST' ? 'create' : 'edit' }}">
     @csrf
     @if ($method !== 'POST')
         @method($method)
     @endif
     <input type="hidden" name="_conta_id" value="{{ old('_conta_id', $conta->id ?? '') }}">
+    @include('contas-receber._filtros-ocultos', ['filtros' => $filtros ?? [], 'pagina' => $paginaAtual ?? 1])
 
     @if ($errors->any())
         <div class="alert alert-danger d-flex align-items-start gap-2 border-0 rounded-3">
@@ -74,13 +85,14 @@
             <label for="{{ $campoId('valor') }}" class="form-label">Valor <span class="text-danger">*</span></label>
             <div class="input-group">
                 <span class="input-group-text">R$</span>
-                <input type="number"
+                <input type="text"
                        id="{{ $campoId('valor') }}"
                        name="valor"
-                       step="0.01"
-                       min="0.01"
-                       class="form-control @error('valor') is-invalid @enderror"
-                       value="{{ old('valor', $conta->valor ?? '') }}"
+                       inputmode="numeric"
+                       autocomplete="off"
+                       data-money
+                       class="form-control text-end @error('valor') is-invalid @enderror"
+                       value="{{ $valorAtual }}"
                        placeholder="0,00">
                 @error('valor')
                     <div class="invalid-feedback">{{ $message }}</div>

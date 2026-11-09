@@ -28,8 +28,11 @@
 
                 <form action="{{ route('contas-receber.importar') }}"
                       method="POST"
-                      enctype="multipart/form-data">
+                      enctype="multipart/form-data"
+                      data-ajax-form
+                      data-form-mode="import">
                     @csrf
+                    @include('contas-receber._filtros-ocultos', ['filtros' => $filtros ?? [], 'pagina' => $paginaAtual ?? 1])
 
                     <div class="upload-zone">
                         <i class="bi bi-cloud-arrow-up"></i>

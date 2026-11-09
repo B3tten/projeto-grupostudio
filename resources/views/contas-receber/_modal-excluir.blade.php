@@ -14,9 +14,10 @@
             </div>
 
             <div class="modal-body">
-                <form action="#" method="POST">
+                <form action="#" method="POST" data-ajax-form>
                     @csrf
                     @method('DELETE')
+                    @include('contas-receber._filtros-ocultos', ['filtros' => $filtros ?? [], 'pagina' => $paginaAtual ?? 1])
 
                     <div class="row g-3 g-lg-4">
                         <div class="col-12 col-md-8">

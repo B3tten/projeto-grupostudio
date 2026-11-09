@@ -7,7 +7,7 @@
         $abrirCarga = request()->boolean('carga') || $errors->has('arquivo');
         $abrirEdicao = ! $abrirCarga && $contaEdicao !== null;
         $abrirConta = ! $abrirCarga && ! $abrirEdicao && (request()->boolean('nova') || $errors->any());
-        $filtrosAtivos = count($filtros);
+        $paginaAtual = $contas->currentPage();
     @endphp
 
     <div class="d-flex flex-wrap align-items-start align-items-xl-center justify-content-between gap-3 mb-4">
@@ -79,227 +79,17 @@
         </div>
     </div>
 
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-        <div class="text-muted small">
-            @if ($contas->total() > 0)
-                Mostrando <strong class="text-dark">{{ $contas->firstItem() }}–{{ $contas->lastItem() }}</strong>
-                de <strong class="text-dark">{{ $contas->total() }}</strong> contas
-            @else
-                Nenhuma conta encontrada
-            @endif
-        </div>
+    <div id="alertas-ajax" aria-live="polite"></div>
 
-        <div class="d-flex align-items-center gap-2">
-            <div class="dropdown">
-                <button type="button"
-                        class="btn btn-light-soft px-2 filter-toggle"
-                        data-bs-toggle="dropdown"
-                        data-bs-auto-close="outside"
-                        aria-expanded="false"
-                        aria-controls="filtrosPanel"
-                        aria-label="Filtros"
-                        title="Filtros">
-                    <i class="bi bi-funnel"></i>
-                    @if ($filtrosAtivos > 0)
-                        <span class="filter-count" title="{{ $filtrosAtivos }} filtro(s) ativo(s)">{{ $filtrosAtivos }}</span>
-                    @endif
-                </button>
-
-                <div class="dropdown-menu dropdown-menu-end filter-dropdown shadow" id="filtrosPanel">
-                    <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
-                        <h2 class="section-title mb-0">Filtrar contas</h2>
-                        <a href="{{ route('contas-receber.index') }}" class="small fw-semibold text-decoration-none" style="color: var(--brand-dark);">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i> Limpar tudo
-                        </a>
-                    </div>
-
-                    <form method="GET" action="{{ route('contas-receber.index') }}">
-                        @if (! empty($filtros['busca']))
-                            <input type="hidden" name="busca" value="{{ $filtros['busca'] }}">
-                        @endif
-
-                        <div class="row g-3 align-items-end">
-                            <div class="col-12 col-md-4">
-                                <label for="filtro_status" class="form-label">Status</label>
-                                <select id="filtro_status" name="status" class="form-select">
-                                    <option value="">Todos</option>
-                                    @foreach (['pendente' => 'Pendente', 'pago' => 'Recebido', 'vencido' => 'Vencido', 'cancelado' => 'Cancelado'] as $valor => $rotulo)
-                                        <option value="{{ $valor }}" @selected(($filtros['status'] ?? '') === $valor)>{{ $rotulo }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-
-                            <div class="col-6 col-md-4">
-                                <label for="filtro_vencimento_de" class="form-label">Vencimento de</label>
-                                <input type="date"
-                                       id="filtro_vencimento_de"
-                                       name="vencimento_de"
-                                       class="form-control"
-                                       value="{{ $filtros['vencimento_de'] ?? '' }}">
-                            </div>
-
-                            <div class="col-6 col-md-4">
-                                <label for="filtro_vencimento_ate" class="form-label">Vencimento até</label>
-                                <input type="date"
-                                       id="filtro_vencimento_ate"
-                                       name="vencimento_ate"
-                                       class="form-control"
-                                       value="{{ $filtros['vencimento_ate'] ?? '' }}">
-                            </div>
-                        </div>
-
-                        <div class="d-flex justify-content-end gap-2 border-top mt-3 pt-3">
-                            <a href="{{ route('contas-receber.index') }}" class="btn btn-light-soft">Limpar</a>
-                            <button type="submit" class="btn btn-brand">
-                                <i class="bi bi-check2 me-1"></i> Aplicar filtros
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-
-            <div class="filter-total">
-                <span class="text-muted">Total filtrado</span>
-                <strong>R$ {{ number_format($resumo['total'], 2, ',', '.') }}</strong>
-            </div>
-        </div>
+    <div id="contas-tabela">
+        @include('contas-receber._tabela')
     </div>
 
-    <div class="card card-surface overflow-hidden">
-        <div class="table-responsive">
-            <table class="table table-app align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Documento</th>
-                        <th>Vencimento</th>
-                        <th>Valor</th>
-                        <th>Status</th>
-                        <th class="text-end">Ações</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse ($contas as $conta)
-                        <tr>
-                            <td style="min-width: 240px;">
-                                <div class="d-flex align-items-center gap-3">
-                                    <span class="client-avatar">{{ $conta->iniciais }}</span>
-                                    <div class="min-w-0">
-                                        <div class="fw-semibold">{{ $conta->cliente }}</div>
-                                        <div class="text-muted small text-truncate" style="max-width: 260px;">
-                                            {{ $conta->descricao ?: 'Sem descrição' }}
-                                        </div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="text-muted small">{{ $conta->documento ?: '—' }}</td>
-                            <td style="min-width: 150px;">
-                                <div class="fw-semibold {{ $conta->isVencida() ? 'text-danger' : '' }}">
-                                    {{ $conta->data_vencimento->format('d/m/Y') }}
-                                </div>
-                                <div class="small">
-                                    @if ($conta->data_pagamento)
-                                        <span class="text-success">Recebido em {{ $conta->data_pagamento->format('d/m/Y') }}</span>
-                                    @elseif ($conta->isVencida())
-                                        <span class="text-danger">{{ (int) $conta->data_vencimento->diffInDays(today()) }} dia(s) em atraso</span>
-                                    @else
-                                        @php($diasParaVencer = (int) today()->startOfDay()->diffInDays($conta->data_vencimento->startOfDay()))
-                                        <span class="text-muted">
-                                            {{ $diasParaVencer === 0 ? 'Vence hoje' : ($diasParaVencer === 1 ? 'Vence amanhã' : 'Vence em ' . $diasParaVencer . ' dias') }}
-                                        </span>
-                                    @endif
-                                </div>
-                            </td>
-                            <td class="fw-semibold text-nowrap">{{ $conta->valor_formatado }}</td>
-                            <td>
-                                <span class="badge rounded-pill text-bg-{{ $conta->situacao_badge }}">
-                                    {{ $conta->situacao_label }}
-                                </span>
-                            </td>
-                            <td class="text-end text-nowrap">
-                                @if ($conta->status === 'pendente')
-                                    <button type="button"
-                                            class="btn btn-sm btn-success"
-                                            title="Registrar recebimento"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#receberModal"
-                                            data-receber-action="{{ route('contas-receber.receber', ['conta' => $conta]) }}"
-                                            data-cliente="{{ $conta->cliente }}"
-                                            data-valor="{{ $conta->valor_formatado }}"
-                                            data-vencimento="{{ $conta->data_vencimento->format('d/m/Y') }}">
-                                        <i class="bi bi-check2-circle"></i>
-                                    </button>
-                                @endif
-                                <button type="button"
-                                        class="btn btn-sm btn-light-soft"
-                                        title="Editar conta"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#editarModal"
-                                        data-conta-action="{{ route('contas-receber.update', ['conta' => $conta]) }}"
-                                        data-conta-id="{{ $conta->id }}"
-                                        data-cliente="{{ $conta->cliente }}"
-                                        data-documento="{{ $conta->documento }}"
-                                        data-descricao="{{ $conta->descricao }}"
-                                        data-valor="{{ $conta->valor }}"
-                                        data-vencimento="{{ $conta->data_vencimento->format('Y-m-d') }}"
-                                        data-pagamento="{{ $conta->data_pagamento?->format('Y-m-d') }}"
-                                        data-status="{{ $conta->status }}"
-                                        data-forma="{{ $conta->forma_pagamento }}"
-                                        data-observacao="{{ $conta->observacao }}">
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-danger"
-                                        title="Excluir conta"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#excluirModal"
-                                        data-conta-action="{{ route('contas-receber.destroy', ['conta' => $conta]) }}"
-                                        data-cliente="{{ $conta->cliente }}"
-                                        data-documento="{{ $conta->documento }}"
-                                        data-descricao="{{ $conta->descricao }}"
-                                        data-valor="{{ $conta->valor_formatado }}"
-                                        data-vencimento="{{ $conta->data_vencimento->format('d/m/Y') }}"
-                                        data-pagamento="{{ $conta->data_pagamento?->format('d/m/Y') }}"
-                                        data-status="{{ $conta->situacao_label }}"
-                                        data-forma="{{ $conta->forma_pagamento }}"
-                                        data-observacao="{{ $conta->observacao }}">
-                                    <i class="bi bi-trash3"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="6">
-                                <div class="empty-state">
-                                    <i class="bi bi-inbox"></i>
-                                    <h6 class="mb-1">Nenhuma conta encontrada</h6>
-                                    <p class="mb-3">Ajuste os filtros ou cadastre uma nova conta a receber.</p>
-                                    <button type="button" class="btn btn-brand btn-sm" data-bs-toggle="modal" data-bs-target="#contaModal">
-                                        <i class="bi bi-plus-lg me-1"></i> Cadastrar conta
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
-
-        @if ($contas->hasPages())
-            <div class="card-footer d-flex flex-wrap align-items-center justify-content-between gap-2 border-top bg-white px-4 py-3">
-                <div class="text-muted small">
-                    Página {{ $contas->currentPage() }} de {{ $contas->lastPage() }}
-                </div>
-                @include('partials.pagination', ['paginator' => $contas])
-            </div>
-        @endif
-    </div>
-
-    @include('contas-receber._modal-conta')
-    @include('contas-receber._modal-editar')
-    @include('contas-receber._modal-receber')
-    @include('contas-receber._modal-excluir')
-    @include('contas-receber._modal-carga')
+    @include('contas-receber._modal-conta', ['filtros' => $filtros, 'paginaAtual' => $paginaAtual])
+    @include('contas-receber._modal-editar', ['filtros' => $filtros, 'paginaAtual' => $paginaAtual])
+    @include('contas-receber._modal-receber', ['filtros' => $filtros, 'paginaAtual' => $paginaAtual])
+    @include('contas-receber._modal-excluir', ['filtros' => $filtros, 'paginaAtual' => $paginaAtual])
+    @include('contas-receber._modal-carga', ['filtros' => $filtros, 'paginaAtual' => $paginaAtual])
 @endsection
 
 @push('styles')
@@ -425,20 +215,72 @@
 @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            const tabela = document.getElementById('contas-tabela');
+            const alertas = document.getElementById('alertas-ajax');
+
+            /* Currency mask: digits fill right to left and always keep two decimals. */
+            const formatarMoeda = function (valor) {
+                const digitos = String(valor ?? '').replace(/\D/g, '').slice(0, 15);
+                const numero = (digitos === '' ? 0 : parseInt(digitos, 10)) / 100;
+
+                return numero.toLocaleString('pt-BR', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                });
+            };
+
+            const aplicarMascara = function (input) {
+                if (input && input.matches && input.matches('[data-money]')) {
+                    input.value = formatarMoeda(input.value);
+                }
+            };
+
+            document.querySelectorAll('[data-money]').forEach(aplicarMascara);
+
+            document.addEventListener('input', function (event) {
+                if (!event.target.matches('[data-money]')) {
+                    return;
+                }
+
+                event.target.value = formatarMoeda(event.target.value);
+
+                const fim = event.target.value.length;
+
+                try {
+                    event.target.setSelectionRange(fim, fim);
+                } catch (erro) {
+                    // Some date-like inputs do not support selection ranges.
+                }
+            });
+
+            document.addEventListener('focusin', function (event) {
+                if (event.target.matches('[data-money]') && event.target.value.trim() === '') {
+                    event.target.value = '0,00';
+                }
+            });
+
+            /* Modals opened by the server after a validation error. */
             document.querySelectorAll('[data-autoshow]').forEach(function (modal) {
                 bootstrap.Modal.getOrCreateInstance(modal).show();
             });
 
-            document.querySelectorAll('.header-search, #filtrosPanel form').forEach(function (form) {
-                form.addEventListener('submit', function () {
-                    form.querySelectorAll('input[name], select[name]').forEach(function (campo) {
-                        if (campo.value === '') {
-                            campo.disabled = true;
-                        }
-                    });
+            /* Remove empty filter fields so the URL keeps only the active filters. */
+            document.addEventListener('submit', function (event) {
+                const form = event.target.closest('.header-search, #filtrosPanel form');
+
+                if (!form) {
+                    return;
+                }
+
+                form.querySelectorAll('input[name], select[name]').forEach(function (campo) {
+                    if (campo.value === '') {
+                        campo.disabled = true;
+                    }
                 });
             });
 
+            /* Clear server-side error state whenever a modal is opened from a button. */
             document.querySelectorAll('.modal').forEach(function (modal) {
                 modal.addEventListener('show.bs.modal', function (event) {
                     if (!event.relatedTarget) {
@@ -448,10 +290,10 @@
                     modal.querySelectorAll('.alert-danger').forEach(function (alerta) {
                         alerta.remove();
                     });
-
                     modal.querySelectorAll('.is-invalid').forEach(function (campo) {
                         campo.classList.remove('is-invalid');
                     });
+                    modal.querySelectorAll('[data-money]').forEach(aplicarMascara);
                 });
             });
 
@@ -485,6 +327,7 @@
                     preencher('forma_pagamento', botao.dataset.forma);
                     preencher('observacao', botao.dataset.observacao);
 
+                    aplicarMascara(campos.valor);
                     campos.status.dispatchEvent(new Event('change'));
                 });
             }
@@ -532,6 +375,170 @@
                 });
             }
 
+            /* ----------------- AJAX submit: keep filters, refresh only the table ----------------- */
+
+            const mostrarAlerta = function (mensagem, tipo) {
+                if (!alertas) {
+                    return;
+                }
+
+                const aviso = tipo === 'warning';
+                const wrapper = document.createElement('div');
+                wrapper.className = 'alert alert-' + (aviso ? 'warning' : 'success') +
+                    ' alert-dismissible fade show d-flex align-items-center gap-2 border-0 rounded-3 shadow-sm';
+                wrapper.setAttribute('role', 'alert');
+                wrapper.innerHTML = '<i class="bi bi-' + (aviso ? 'exclamation-triangle-fill' : 'check-circle-fill') +
+                    '"></i><div></div><button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Fechar"></button>';
+                wrapper.querySelector('div').textContent = mensagem;
+                alertas.prepend(wrapper);
+
+                window.setTimeout(function () {
+                    bootstrap.Alert.getOrCreateInstance(wrapper).close();
+                }, 5000);
+            };
+
+            const limparErros = function (form) {
+                form.querySelectorAll('.ajax-alert').forEach(function (alerta) {
+                    alerta.remove();
+                });
+                form.querySelectorAll('.is-invalid').forEach(function (campo) {
+                    campo.classList.remove('is-invalid');
+                });
+            };
+
+            const mostrarErros = function (form, erros, mensagem) {
+                limparErros(form);
+
+                const lista = [];
+
+                if (erros && typeof erros === 'object') {
+                    Object.keys(erros).forEach(function (campo) {
+                        (erros[campo] || []).forEach(function (texto) {
+                            lista.push(texto);
+                        });
+
+                        const input = form.querySelector('[name="' + campo + '"]');
+
+                        if (input) {
+                            input.classList.add('is-invalid');
+                        }
+                    });
+                }
+
+                if (!lista.length && mensagem) {
+                    lista.push(mensagem);
+                }
+
+                if (!lista.length) {
+                    lista.push('Não foi possível concluir a operação.');
+                }
+
+                const alerta = document.createElement('div');
+                alerta.className = 'alert alert-danger d-flex align-items-start gap-2 border-0 rounded-3 ajax-alert';
+                alerta.setAttribute('role', 'alert');
+                alerta.innerHTML = '<i class="bi bi-exclamation-triangle-fill mt-1"></i>' +
+                    '<div><div class="fw-semibold mb-1">Verifique os campos abaixo.</div><ul class="mb-0 ps-3 small"></ul></div>';
+
+                const ul = alerta.querySelector('ul');
+
+                lista.forEach(function (texto) {
+                    const li = document.createElement('li');
+                    li.textContent = texto;
+                    ul.appendChild(li);
+                });
+
+                form.prepend(alerta);
+            };
+
+            const fecharModaisAbertos = function () {
+                document.querySelectorAll('.modal.show').forEach(function (modal) {
+                    const instancia = bootstrap.Modal.getInstance(modal);
+
+                    if (instancia) {
+                        instancia.hide();
+                    }
+                });
+            };
+
+            document.addEventListener('submit', function (event) {
+                const form = event.target.closest('form[data-ajax-form]');
+
+                if (!form) {
+                    return;
+                }
+
+                event.preventDefault();
+
+                const botao = form.querySelector('[type="submit"]');
+                const formData = new FormData(form);
+
+                limparErros(form);
+
+                if (botao) {
+                    botao.disabled = true;
+                    botao.dataset.originalHtml = botao.innerHTML;
+                    botao.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Salvando...';
+                }
+
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': token,
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json',
+                    },
+                    body: formData,
+                    credentials: 'same-origin',
+                })
+                    .then(function (resposta) {
+                        return resposta.json().catch(function () {
+                            return null;
+                        }).then(function (dados) {
+                            return { ok: resposta.ok, status: resposta.status, dados: dados };
+                        });
+                    })
+                    .then(function (resultado) {
+                        const dados = resultado.dados || {};
+
+                        if (!resultado.ok) {
+                            mostrarErros(form, dados.errors, dados.message);
+                            return;
+                        }
+
+                        if (tabela && typeof dados.html === 'string') {
+                            tabela.innerHTML = dados.html;
+                        }
+
+                        fecharModaisAbertos();
+
+                        if (dados.url) {
+                            history.replaceState({}, '', dados.url);
+                        }
+
+                        mostrarAlerta(dados.message || 'Operação concluída.', dados.type || 'success');
+
+                        if (form.dataset.formMode === 'create' || form.dataset.formMode === 'import') {
+                            form.reset();
+                            form.querySelectorAll('[data-money]').forEach(aplicarMascara);
+                            form.querySelectorAll('.is-invalid').forEach(function (campo) {
+                                campo.classList.remove('is-invalid');
+                            });
+                        }
+                    })
+                    .catch(function () {
+                        mostrarErros(form, null, 'Falha de conexão. Verifique sua internet e tente novamente.');
+                    })
+                    .finally(function () {
+                        if (botao) {
+                            botao.disabled = false;
+                            if (botao.dataset.originalHtml) {
+                                botao.innerHTML = botao.dataset.originalHtml;
+                            }
+                        }
+                    });
+            });
+
+            /* Drop params that only control modal state; keep the filters themselves. */
             const url = new URL(window.location.href);
             let alterou = false;
 
