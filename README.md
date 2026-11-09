@@ -1,8 +1,8 @@
 # Gestão Financeira — Contas a Receber
 
-Olá! Este repositório é o meu teste técnico para a vaga de **Desenvolvedor PHP/Laravel (Grupo Estúdio · Plataforma PJ360)**. A ideia era construir uma aplicação de gestão financeira focada em **contas a receber**, e foi isso que tentei fazer — de um jeito simples de entender, rodar e revisar.
+Olá! Este repositório é o meu projeto teste para a vaga de **Desenvolvedor Web (Grupo Estúdio)**. A ideia era construir uma aplicação de gestão financeira focada em **contas a receber**, com layout moderno e responsivo.
 
-O sistema mostra os indicadores financeiros, lista os recebíveis, permite pesquisar e filtrar, e deixa criar, editar, excluir e registrar recebimentos sem sair da listagem. Ele roda com **Laravel 9 + SQLite** no backend e **Bootstrap 5 + JavaScript puro** no frontend (nada de React/Vue/Tailwind, e sem passo de build).
+O sistema mostra os indicadores financeiros, lista os recebíveis, permite pesquisar e filtrar, e deixa criar, editar, excluir e registrar recebimentos sem sair da listagem. Ele roda com **Laravel 9 + SQLite** no backend e **Bootstrap 5 + JavaScript puro** no frontend.
 
 > **Roda em outra máquina?** Clone, `composer install`, copie o `.env`, crie o arquivo `database/database.sqlite`, rode `php artisan migrate --seed` e suba com `php artisan serve`. O passo a passo resumido está em [`docs/INSTALACAO.md`](docs/INSTALACAO.md).
 
@@ -44,8 +44,7 @@ php artisan test    # 7 testes passando
 - **"Vencido" não é uma situação guardada no banco.** É derivado na hora: pendente + `data_vencimento` anterior a hoje. Isso evita job agendado e mantém as telas corretas sem esforço.
 - O status armazenado é `pago`; na tela ele aparece como **Recebido**. `cancelado` existe como situação administrativa, mas contas canceladas não entram nos totais nem podem ser recebidas de novo.
 - Os formulários usam **AJAX (fetch + JSON)**, com o controller devolvendo apenas o HTML re-renderizado da tabela. Sem o JavaScript, o formulário funciona normalmente como fallback e redireciona para a URL filtrada.
-- **Sem framework de frontend**, por escolha: o escopo do teste pede Bootstrap/HTML/JS puro, então é o que a aplicação usa.
-- Usei **SQLite** exatamente para que você não precise subir nada além de `php artisan serve` — nada de MySQL nem de servidor web.
+- Usei **SQLite** exatamente para que você não precise subir nada além de `php artisan serve`.
 
 ## Segurança (o mínimo necessário)
 
@@ -64,7 +63,7 @@ Sim, usei IA como **par de programação** durante todo o desenvolvimento: para 
 
 ## O que eu melhoraria numa próxima versão
 
-Sou honesto do que falta: **login e permissões** (o teste não pedia, então não fiz), atualização do **Laravel 9** (as vulnerabilidades conhecidas estão documentadas em vez de resolvidas), HTTPS para produção e um pipeline mínimo de CI. Numa aplicação real eu faria esses itens antes de qualquer evolução de funcionalidade.
+Sou honesto do que falta: **login e permissões**, atualização do **Laravel 9** (as vulnerabilidades conhecidas estão documentadas em vez de resolvidas), HTTPS para produção e um pipeline mínimo de CI. Numa aplicação real eu faria esses itens antes de qualquer evolução de funcionalidade.
 
 ## Checklist do teste (mapa rápido)
 
@@ -102,6 +101,6 @@ routes/web.php             dashboard, CRUD, carga e recebimento
 docs/                      INSTALACAO · PROCESSO · USO_DE_IA · SEGURANCA
 ```
 
-Obrigado por chegar até aqui — espero que o projeto seja rápido de revisar e de rodar. O repositório está em **https://github.com/B3tten/projeto-grupostudio**.
+Obrigado por chegar até aqui, espero que o projeto tenha sido satisfatório. O repositório está em **https://github.com/B3tten/projeto-grupostudio**.
 
-— Gabriel
+— Gabriel Bettencourt Vieira
