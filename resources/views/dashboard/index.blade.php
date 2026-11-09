@@ -1,0 +1,241 @@
+@extends('layouts.app')
+
+@section('title', 'Dashboard')
+
+@section('content')
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 gap-lg-3 mb-3">
+        <div>
+            <p class="page-eyebrow mb-1">Visão geral</p>
+            <h1 class="page-title mb-0">Dashboard</h1>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="d-none d-sm-inline-block text-muted small">
+                <i class="bi bi-calendar3 me-1"></i>{{ now()->format('d/m/Y') }}
+            </span>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-3">
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card card-surface stat-card h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-start justify-content-between gap-3">
+                        <div>
+                            <p class="stat-label">Total a receber</p>
+                            <div class="stat-value">R$ {{ number_format($totalAReceber, 2, ',', '.') }}</div>
+                        </div>
+                        <span class="stat-icon bg-success-subtle text-success-emphasis">
+                            <i class="bi bi-wallet2"></i>
+                        </span>
+                    </div>
+                    <p class="stat-meta">
+                        <strong>{{ $quantidadePendente }}</strong> contas pendentes
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card card-surface stat-card h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-start justify-content-between gap-3">
+                        <div>
+                            <p class="stat-label">Total recebido</p>
+                            <div class="stat-value">R$ {{ number_format($totalRecebido, 2, ',', '.') }}</div>
+                        </div>
+                        <span class="stat-icon bg-primary-subtle text-primary-emphasis">
+                            <i class="bi bi-check2-circle"></i>
+                        </span>
+                    </div>
+                    <p class="stat-meta">
+                        <strong>{{ $quantidadeRecebida }}</strong> contas recebidas
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card card-surface stat-card h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-start justify-content-between gap-3">
+                        <div>
+                            <p class="stat-label">Total vencido</p>
+                            <div class="stat-value text-danger">R$ {{ number_format($totalVencido, 2, ',', '.') }}</div>
+                        </div>
+                        <span class="stat-icon bg-danger-subtle text-danger-emphasis">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </span>
+                    </div>
+                    <p class="stat-meta">
+                        <strong>{{ $quantidadeVencida }}</strong> contas vencidas
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-xl-3">
+            <div class="card card-surface stat-card h-100">
+                <div class="card-body p-3">
+                    <div class="d-flex align-items-start justify-content-between gap-3">
+                        <div>
+                            <p class="stat-label">Total a vencer</p>
+                            <div class="stat-value">R$ {{ number_format($totalAVencer, 2, ',', '.') }}</div>
+                        </div>
+                        <span class="stat-icon bg-warning-subtle text-warning-emphasis">
+                            <i class="bi bi-hourglass-split"></i>
+                        </span>
+                    </div>
+                    <p class="stat-meta">
+                        <strong>{{ $quantidadeAVencer }}</strong> contas a vencer
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-3 g-xl-4 align-items-stretch">
+        <div class="col-12 col-lg-8 col-xl-5">
+            <div class="card card-surface h-100">
+                <div class="card-body p-3 p-lg-4 d-flex flex-column">
+                    <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
+                        <div>
+                            <h2 class="section-title mb-0">Recebimentos por mês</h2>
+                            <p class="section-subtitle">Últimos 6 meses</p>
+                        </div>
+                        <a href="{{ route('contas-receber.index', ['status' => 'pago']) }}"
+                           class="small fw-semibold text-decoration-none"
+                           style="color: var(--brand-dark);">
+                            Ver recebidos <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+
+                    <div class="chart chart-compact flex-grow-1">
+                        @foreach ($recebimentosPorMes as $mes)
+                            <div class="chart-col">
+                                <div class="chart-value">R$ {{ number_format($mes['total'], 0, ',', '.') }}</div>
+                                <div class="chart-track">
+                                    <div class="chart-bar"
+                                         style="height: {{ $mes['altura'] }}%;"
+                                         title="{{ $mes['label'] }}: R$ {{ number_format($mes['total'], 2, ',', '.') }}">
+                                    </div>
+                                </div>
+                                <div class="chart-label">{{ $mes['label'] }}</div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4 col-xl-3">
+            <div class="card card-surface h-100">
+                <div class="card-body p-3 p-lg-4 d-flex flex-column">
+                    <div class="mb-3">
+                        <h2 class="section-title mb-0">Composição</h2>
+                        <p class="section-subtitle">Situação da carteira</p>
+                    </div>
+
+                    <div class="flex-grow-1 d-flex flex-column justify-content-center">
+                        <div class="donut donut-sm mb-3 mx-auto" style="background: {{ $grafico }};">
+                            <div class="donut-hole">
+                                <span>Total</span>
+                                <strong>R$ {{ number_format($totalGeral, 0, ',', '.') }}</strong>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="legend-row">
+                                <span><span class="legend-dot" style="background:#0f9f6e;"></span>Recebido</span>
+                                <span class="text-muted">{{ $percentualRecebido }}%</span>
+                            </div>
+                            <div class="legend-row">
+                                <span><span class="legend-dot" style="background:#ef4444;"></span>Vencido</span>
+                                <span class="text-muted">{{ $percentualVencido }}%</span>
+                            </div>
+                            <div class="legend-row">
+                                <span><span class="legend-dot" style="background:#f59e0b;"></span>A vencer</span>
+                                <span class="text-muted">{{ $percentualAVencer }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-xl-4">
+            <div class="d-flex flex-column gap-3 gap-xl-4">
+                <div class="card card-surface">
+                    <div class="d-flex align-items-start justify-content-between gap-2 px-3 pt-3 pb-1">
+                        <h2 class="section-title mb-0">Próximos vencimentos</h2>
+                        <a href="{{ route('contas-receber.index', ['status' => 'pendente']) }}"
+                           class="small fw-semibold text-decoration-none text-nowrap"
+                           style="color: var(--brand-dark);">
+                            Ver todas
+                        </a>
+                    </div>
+
+                    <div class="rail-scroll px-3 pb-2" tabindex="0" aria-label="Próximos vencimentos">
+                        @forelse ($proximosVencimentos as $conta)
+                            <div class="list-row">
+                                <span class="list-icon bg-success-subtle text-success-emphasis">
+                                    <i class="bi bi-calendar-event"></i>
+                                </span>
+                                <div class="flex-grow-1 min-w-0">
+                                    <div class="fw-semibold small text-truncate">{{ $conta->cliente }}</div>
+                                    <div class="text-muted text-truncate" style="font-size: .72rem;">
+                                        {{ $conta->data_vencimento->isToday() ? 'Vence hoje' : 'Vence em ' . $conta->data_vencimento->format('d/m') }}
+                                        @if ($conta->descricao)
+                                            · {{ $conta->descricao }}
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="fw-semibold small text-nowrap">{{ $conta->valor_formatado }}</div>
+                            </div>
+                        @empty
+                            <div class="empty-state py-3">
+                                <i class="bi bi-calendar-check"></i>
+                                <p class="mb-0">Nenhuma conta a vencer.</p>
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+
+                <div class="card card-surface">
+                    <div class="d-flex align-items-start justify-content-between gap-2 px-3 pt-3 pb-1">
+                        <h2 class="section-title mb-0">Últimos recebimentos</h2>
+                        <a href="{{ route('contas-receber.index', ['status' => 'pago']) }}"
+                           class="small fw-semibold text-decoration-none text-nowrap"
+                           style="color: var(--brand-dark);">
+                            Ver todos
+                        </a>
+                    </div>
+
+                    <div class="rail-scroll px-3 pb-2" tabindex="0" aria-label="Últimos recebimentos">
+                        @forelse ($ultimosRecebimentos as $conta)
+                            <div class="list-row">
+                                <span class="list-icon bg-primary-subtle text-primary-emphasis">
+                                    <i class="bi bi-check2-circle"></i>
+                                </span>
+                                <div class="flex-grow-1 min-w-0">
+                                    <div class="fw-semibold small text-truncate">{{ $conta->cliente }}</div>
+                                    <div class="text-muted text-truncate" style="font-size: .72rem;">
+                                        Recebido em {{ $conta->data_pagamento?->format('d/m') }}
+                                        @if ($conta->forma_pagamento)
+                                            · {{ $conta->forma_pagamento }}
+                                        @endif
+                                    </div>
+                                </div>
+                                <div class="fw-semibold small text-success text-nowrap">{{ $conta->valor_formatado }}</div>
+                            </div>
+                        @empty
+                            <div class="empty-state py-3">
+                                <i class="bi bi-receipt-cutoff"></i>
+                                <p class="mb-0">Nenhum recebimento ainda.</p>
+                            </div>
+                        @endforelse
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection

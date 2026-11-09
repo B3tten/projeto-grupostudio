@@ -1,0 +1,4 @@
+cliente;descricao;documento;valor;data_vencimento;data_pagamento;status;forma_pagamento;observacao
+Alfa Comércio Ltda;Venda de mercadorias;NF-02001;1250,00;15/12/2026;;pendente;Pix;
+Bela Vista Distribuidora;Prestação de serviços;NF-02002;890,50;20/12/2026;05/12/2026;pago;Boleto;Pagamento antecipado
+Carlos Eduardo Martins;Consultoria mensal;NF-02003;2450,00;10/01/2027;;pendente;Transferência;
