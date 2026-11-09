@@ -17,6 +17,7 @@ use App\Http\Controllers\DashboardController;
 */
 
 Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+Route::get('/dashboard/resumo', [DashboardController::class, 'resumo'])->name('dashboard.resumo');
 
 Route::get('contas-a-receber/carga', [ContaReceberCargaController::class, 'create'])
     ->name('contas-receber.carga');

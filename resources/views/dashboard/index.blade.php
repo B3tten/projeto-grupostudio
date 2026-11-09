@@ -17,79 +17,95 @@
 
     <div class="row g-3 mb-3">
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card card-surface stat-card h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex align-items-start justify-content-between gap-3">
-                        <div>
-                            <p class="stat-label">Total a receber</p>
-                            <div class="stat-value">R$ {{ number_format($totalAReceber, 2, ',', '.') }}</div>
+            <a href="{{ route('contas-receber.index', ['status' => 'a_receber']) }}"
+               class="stat-card-link h-100"
+               aria-label="Ver contas a receber">
+                <div class="card card-surface stat-card h-100">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-start justify-content-between gap-3">
+                            <div>
+                                <p class="stat-label">Total a receber</p>
+                                <div class="stat-value" id="kpi-receber">R$ {{ number_format($totalAReceber, 2, ',', '.') }}</div>
+                            </div>
+                            <span class="stat-icon bg-success-subtle text-success-emphasis">
+                                <i class="bi bi-wallet2"></i>
+                            </span>
                         </div>
-                        <span class="stat-icon bg-success-subtle text-success-emphasis">
-                            <i class="bi bi-wallet2"></i>
-                        </span>
+                        <p class="stat-meta">
+                            <strong id="kpi-receber-qtd">{{ $quantidadePendente }}</strong> contas pendentes
+                        </p>
                     </div>
-                    <p class="stat-meta">
-                        <strong>{{ $quantidadePendente }}</strong> contas pendentes
-                    </p>
                 </div>
-            </div>
+            </a>
         </div>
 
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card card-surface stat-card h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex align-items-start justify-content-between gap-3">
-                        <div>
-                            <p class="stat-label">Total recebido</p>
-                            <div class="stat-value">R$ {{ number_format($totalRecebido, 2, ',', '.') }}</div>
+            <a href="{{ route('contas-receber.index', ['status' => 'pago']) }}"
+               class="stat-card-link h-100"
+               aria-label="Ver contas recebidas">
+                <div class="card card-surface stat-card h-100">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-start justify-content-between gap-3">
+                            <div>
+                                <p class="stat-label">Total recebido</p>
+                                <div class="stat-value" id="kpi-recebido">R$ {{ number_format($totalRecebido, 2, ',', '.') }}</div>
+                            </div>
+                            <span class="stat-icon bg-primary-subtle text-primary-emphasis">
+                                <i class="bi bi-check2-circle"></i>
+                            </span>
                         </div>
-                        <span class="stat-icon bg-primary-subtle text-primary-emphasis">
-                            <i class="bi bi-check2-circle"></i>
-                        </span>
+                        <p class="stat-meta">
+                            <strong id="kpi-recebido-qtd">{{ $quantidadeRecebida }}</strong> contas recebidas
+                        </p>
                     </div>
-                    <p class="stat-meta">
-                        <strong>{{ $quantidadeRecebida }}</strong> contas recebidas
-                    </p>
                 </div>
-            </div>
+            </a>
         </div>
 
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card card-surface stat-card h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex align-items-start justify-content-between gap-3">
-                        <div>
-                            <p class="stat-label">Total vencido</p>
-                            <div class="stat-value text-danger">R$ {{ number_format($totalVencido, 2, ',', '.') }}</div>
+            <a href="{{ route('contas-receber.index', ['status' => 'vencido']) }}"
+               class="stat-card-link h-100"
+               aria-label="Ver contas vencidas">
+                <div class="card card-surface stat-card h-100">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-start justify-content-between gap-3">
+                            <div>
+                                <p class="stat-label">Total vencido</p>
+                                <div class="stat-value text-danger" id="kpi-vencido">R$ {{ number_format($totalVencido, 2, ',', '.') }}</div>
+                            </div>
+                            <span class="stat-icon bg-danger-subtle text-danger-emphasis">
+                                <i class="bi bi-exclamation-triangle"></i>
+                            </span>
                         </div>
-                        <span class="stat-icon bg-danger-subtle text-danger-emphasis">
-                            <i class="bi bi-exclamation-triangle"></i>
-                        </span>
+                        <p class="stat-meta">
+                            <strong id="kpi-vencido-qtd">{{ $quantidadeVencida }}</strong> contas vencidas
+                        </p>
                     </div>
-                    <p class="stat-meta">
-                        <strong>{{ $quantidadeVencida }}</strong> contas vencidas
-                    </p>
                 </div>
-            </div>
+            </a>
         </div>
 
         <div class="col-12 col-sm-6 col-xl-3">
-            <div class="card card-surface stat-card h-100">
-                <div class="card-body p-3">
-                    <div class="d-flex align-items-start justify-content-between gap-3">
-                        <div>
-                            <p class="stat-label">Total a vencer</p>
-                            <div class="stat-value">R$ {{ number_format($totalAVencer, 2, ',', '.') }}</div>
+            <a href="{{ route('contas-receber.index', ['status' => 'pendente']) }}"
+               class="stat-card-link h-100"
+               aria-label="Ver contas a vencer">
+                <div class="card card-surface stat-card h-100">
+                    <div class="card-body p-3">
+                        <div class="d-flex align-items-start justify-content-between gap-3">
+                            <div>
+                                <p class="stat-label">Total a vencer</p>
+                                <div class="stat-value" id="kpi-a-vencer">R$ {{ number_format($totalAVencer, 2, ',', '.') }}</div>
+                            </div>
+                            <span class="stat-icon bg-warning-subtle text-warning-emphasis">
+                                <i class="bi bi-hourglass-split"></i>
+                            </span>
                         </div>
-                        <span class="stat-icon bg-warning-subtle text-warning-emphasis">
-                            <i class="bi bi-hourglass-split"></i>
-                        </span>
+                        <p class="stat-meta">
+                            <strong id="kpi-a-vencer-qtd">{{ $quantidadeAVencer }}</strong> contas a vencer
+                        </p>
                     </div>
-                    <p class="stat-meta">
-                        <strong>{{ $quantidadeAVencer }}</strong> contas a vencer
-                    </p>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 
@@ -136,25 +152,25 @@
                     </div>
 
                     <div class="flex-grow-1 d-flex flex-column justify-content-center">
-                        <div class="donut donut-sm mb-3 mx-auto" style="background: {{ $grafico }};">
+                        <div class="donut donut-sm mb-3 mx-auto" id="composicao-donut" style="background: {{ $grafico }};">
                             <div class="donut-hole">
                                 <span>Total</span>
-                                <strong>R$ {{ number_format($totalGeral, 0, ',', '.') }}</strong>
+                                <strong id="composicao-total">R$ {{ number_format($totalGeral, 0, ',', '.') }}</strong>
                             </div>
                         </div>
 
                         <div>
                             <div class="legend-row">
                                 <span><span class="legend-dot" style="background:#0f9f6e;"></span>Recebido</span>
-                                <span class="text-muted">{{ $percentualRecebido }}%</span>
+                                <span class="text-muted" id="percentual-recebido">{{ $percentualRecebido }}%</span>
                             </div>
                             <div class="legend-row">
                                 <span><span class="legend-dot" style="background:#ef4444;"></span>Vencido</span>
-                                <span class="text-muted">{{ $percentualVencido }}%</span>
+                                <span class="text-muted" id="percentual-vencido">{{ $percentualVencido }}%</span>
                             </div>
                             <div class="legend-row">
                                 <span><span class="legend-dot" style="background:#f59e0b;"></span>A vencer</span>
-                                <span class="text-muted">{{ $percentualAVencer }}%</span>
+                                <span class="text-muted" id="percentual-a-vencer">{{ $percentualAVencer }}%</span>
                             </div>
                         </div>
                     </div>
@@ -239,3 +255,76 @@
         </div>
     </div>
 @endsection
+
+@push('styles')
+    <style>
+        .stat-card-link {
+            display: block;
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .stat-card-link:focus-visible {
+            outline: 2px solid var(--brand);
+            outline-offset: 3px;
+            border-radius: 16px;
+        }
+    </style>
+@endpush
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const resumoUrl = @json(route('dashboard.resumo'));
+
+            const set = function (id, valor) {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.textContent = valor;
+                }
+            };
+
+            /* Refresh the totals without reloading the page: on load, on focus and every 30s. */
+            const atualizar = function () {
+                fetch(resumoUrl, {
+                    headers: { 'Accept': 'application/json' },
+                    credentials: 'same-origin',
+                })
+                    .then(function (resposta) {
+                        return resposta.ok ? resposta.json() : null;
+                    })
+                    .then(function (dados) {
+                        if (!dados) {
+                            return;
+                        }
+
+                        set('kpi-receber', dados.a_receber);
+                        set('kpi-recebido', dados.recebido);
+                        set('kpi-vencido', dados.vencido);
+                        set('kpi-a-vencer', dados.aVencer);
+                        set('kpi-receber-qtd', dados.quantidadePendente);
+                        set('kpi-recebido-qtd', dados.quantidadeRecebida);
+                        set('kpi-vencido-qtd', dados.quantidadeVencida);
+                        set('kpi-a-vencer-qtd', dados.quantidadeAVencer);
+                        set('composicao-total', dados.totalGeral);
+                        set('percentual-recebido', dados.percentualRecebido + '%');
+                        set('percentual-vencido', dados.percentualVencido + '%');
+                        set('percentual-a-vencer', dados.percentualAVencer + '%');
+
+                        const donut = document.getElementById('composicao-donut');
+
+                        if (donut) {
+                            donut.style.background = dados.grafico;
+                        }
+                    })
+                    .catch(function () {
+                        // Keep the server-rendered values when the refresh fails.
+                    });
+            };
+
+            atualizar();
+            window.addEventListener('focus', atualizar);
+            window.setInterval(atualizar, 30000);
+        });
+    </script>
+@endpush

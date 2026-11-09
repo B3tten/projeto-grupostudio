@@ -12,18 +12,7 @@ class DashboardController extends Controller
     {
         $hoje = today();
         $pendentes = ContaReceber::where('status', 'pendente');
-
-        // "A receber" is every pending account; "vencido" and "a vencer" split
-        // that same base by due date, while "recebido" comes from paid accounts.
-        $totalRecebido = (float) ContaReceber::where('status', 'pago')->sum('valor');
-        $totalAReceber = (float) (clone $pendentes)->sum('valor');
-        $totalVencido = (float) (clone $pendentes)->whereDate('data_vencimento', '<', $hoje)->sum('valor');
-        $totalAVencer = (float) (clone $pendentes)->whereDate('data_vencimento', '>=', $hoje)->sum('valor');
-
-        $quantidadePendente = (clone $pendentes)->count();
-        $quantidadeVencida = (clone $pendentes)->whereDate('data_vencimento', '<', $hoje)->count();
-        $quantidadeAVencer = (clone $pendentes)->whereDate('data_vencimento', '>=', $hoje)->count();
-        $quantidadeRecebida = ContaReceber::where('status', 'pago')->count();
+        $resumo = $this->resumoDados();
 
         $proximosVencimentos = (clone $pendentes)
             ->whereDate('data_vencimento', '>=', $hoje)
@@ -36,7 +25,56 @@ class DashboardController extends Controller
             ->limit(5)
             ->get();
 
-        $recebimentosPorMes = $this->recebimentosPorMes();
+        return view('dashboard.index', array_merge($resumo, [
+            'proximosVencimentos' => $proximosVencimentos,
+            'ultimosRecebimentos' => $ultimosRecebimentos,
+            'recebimentosPorMes' => $this->recebimentosPorMes(),
+        ]));
+    }
+
+    /**
+     * Lightweight endpoint consumed by the dashboard's live refresh script.
+     */
+    public function resumo()
+    {
+        $resumo = $this->resumoDados();
+
+        return response()->json([
+            'a_receber' => $this->moeda($resumo['totalAReceber']),
+            'recebido' => $this->moeda($resumo['totalRecebido']),
+            'vencido' => $this->moeda($resumo['totalVencido']),
+            'aVencer' => $this->moeda($resumo['totalAVencer']),
+            'totalGeral' => $this->moeda($resumo['totalGeral'], 0),
+            'percentualRecebido' => $resumo['percentualRecebido'],
+            'percentualVencido' => $resumo['percentualVencido'],
+            'percentualAVencer' => $resumo['percentualAVencer'],
+            'grafico' => $resumo['grafico'],
+            'quantidadePendente' => $resumo['quantidadePendente'],
+            'quantidadeVencida' => $resumo['quantidadeVencida'],
+            'quantidadeAVencer' => $resumo['quantidadeAVencer'],
+            'quantidadeRecebida' => $resumo['quantidadeRecebida'],
+        ]);
+    }
+
+    /**
+     * Shared KPI math, used by both the full-page view and the JSON refresh.
+     */
+    private function resumoDados(): array
+    {
+        $hoje = today();
+        $pendentes = ContaReceber::where('status', 'pendente');
+
+        // "A receber" is every pending account; "vencido" and "a vencer" split
+        // that same base by due date, while "recebido" comes from paid accounts.
+        $totalRecebido = (float) ContaReceber::where('status', 'pago')->sum('valor');
+        $totalAReceber = (float) (clone $pendentes)->sum('valor');
+        $totalVencido = (float) (clone $pendentes)->whereDate('data_vencimento', '<', $hoje)->sum('valor');
+        $totalAVencer = (float) (clone $pendentes)->whereDate('data_vencimento', '>=', $hoje)->sum('valor');
+
+        $quantidadePendente = (clone $pendentes)->count();
+        $quantidadeVencida = (clone $pendentes)->whereDate('data_vencimento', '<', $hoje)->count();
+        $quantidadeAVencer = (clone $pendentes)->whereDate('data_vencimento', '>=', $hoje)->count();
+        $quantidadeRecebida = ContaReceber::where('status', 'pago')->count();
 
         // Cancelled accounts are intentionally excluded from the composition.
         $totalGeral = $totalRecebido + $totalAReceber;
@@ -52,24 +90,26 @@ class DashboardController extends Controller
                 . ($percentualRecebido + $percentualVencido) . "% 100%)"
             : 'conic-gradient(#e4e7ec 0% 100%)';
 
-        return view('dashboard.index', [
-            'totalRecebido' => $totalRecebido,
-            'totalAReceber' => $totalAReceber,
-            'totalVencido' => $totalVencido,
-            'totalAVencer' => $totalAVencer,
-            'quantidadePendente' => $quantidadePendente,
-            'quantidadeVencida' => $quantidadeVencida,
-            'quantidadeAVencer' => $quantidadeAVencer,
-            'quantidadeRecebida' => $quantidadeRecebida,
-            'proximosVencimentos' => $proximosVencimentos,
-            'ultimosRecebimentos' => $ultimosRecebimentos,
-            'recebimentosPorMes' => $recebimentosPorMes,
-            'totalGeral' => $totalGeral,
-            'percentualRecebido' => $percentualRecebido,
-            'percentualVencido' => $percentualVencido,
-            'percentualAVencer' => $percentualAVencer,
-            'grafico' => $grafico,
-        ]);
+        return compact(
+            'totalRecebido',
+            'totalAReceber',
+            'totalVencido',
+            'totalAVencer',
+            'quantidadePendente',
+            'quantidadeVencida',
+            'quantidadeAVencer',
+            'quantidadeRecebida',
+            'totalGeral',
+            'percentualRecebido',
+            'percentualVencido',
+            'percentualAVencer',
+            'grafico'
+        );
+    }
+
+    private function moeda(float $valor, int $casas = 2): string
+    {
+        return 'R$ ' . number_format($valor, $casas, ',', '.');
     }
 
     /**

@@ -1,4 +1,4 @@
-# Gestão Financeira — Contas a Receber
+﻿# Gestão Financeira — Contas a Receber
 
 Olá! Este repositório é o meu projeto teste para a vaga de **Desenvolvedor Web (Grupo Estúdio)**. A ideia era construir uma aplicação de gestão financeira focada em **contas a receber**, com layout moderno e responsivo.
 
@@ -36,7 +36,7 @@ Abra **http://127.0.0.1:8000** e entre no dashboard. Se algo falhar, o passo a p
 Os testes automatizados ficam num banco SQLite em memória, então não tocam no banco de demonstração:
 
 ```bash
-php artisan test    # 7 testes passando
+php artisan test    # 11 testes passando
 ```
 
 ## Algumas escolhas que valem mencionar
@@ -45,6 +45,8 @@ php artisan test    # 7 testes passando
 - O status armazenado é `pago`; na tela ele aparece como **Recebido**. `cancelado` existe como situação administrativa, mas contas canceladas não entram nos totais nem podem ser recebidas de novo.
 - Os formulários usam **AJAX (fetch + JSON)**, com o controller devolvendo apenas o HTML re-renderizado da tabela. Sem o JavaScript, o formulário funciona normalmente como fallback e redireciona para a URL filtrada.
 - Usei **SQLite** exatamente para que você não precise subir nada além de `php artisan serve`.
+- O **filtro Pendente exclui as vencidas** (elas ficam em Vencido); "A receber" é o filtro que mostra todas as pendentes, como no card clicável do dashboard.
+- Os **cards do dashboard levam para a listagem já filtrada**, e os totais e a composição se atualizam sozinhos na página (a cada 30 s e ao focar a janela).
 
 ## Segurança (o mínimo necessário)
 
@@ -80,7 +82,7 @@ Sou honesto do que falta: **login e permissões**, atualização do **Laravel 9*
 | Instruções para executar | Este README + `docs/INSTALACAO.md` |
 | Descrição do uso de IA e do processo | `docs/USO_DE_IA.md` e `docs/PROCESSO.md` |
 | Segurança / arquivos sensíveis | `.gitignore` + `docs/SEGURANCA.md` |
-| Testes automatizados | `tests/Feature/ContaReceberTest.php` (7 testes) |
+| Testes automatizados | `tests/Feature/ContaReceberTest.php` (11 testes) |
 
 ## Estrutura, de um jeito resumido
 
@@ -88,10 +90,12 @@ Sou honesto do que falta: **login e permissões**, atualização do **Laravel 9*
 app/
   Http/Controllers/        DashboardController, ContaReceberController, ContaReceberCargaController
   Http/Controllers/Concerns/ListaContasReceber.php   # filtros e resposta AJAX/JSON
+  Http/Requests/           ContaReceberRequest (base) + Store/Update (validação/máscara de moeda)
   Http/Middleware/         LogBackendCalls.php        # logs de entrada, SQL e saída
   Models/ContaReceber.php                             # regras de status, filtros, formatação
   Services/ContaReceberImportService.php              # parsers CSV/OFX
 database/
+  factories/ContaReceberFactory.php                   # fabrica contas fictícias (testes)
   migrations/ seeders/     contas_receber + 22 contas fictícias
 resources/views/
   dashboard/index.blade.php
@@ -104,3 +108,4 @@ docs/                      INSTALACAO · PROCESSO · USO_DE_IA · SEGURANCA
 Obrigado por chegar até aqui, espero que o projeto tenha sido satisfatório. O repositório está em **https://github.com/B3tten/projeto-grupostudio**.
 
 — Gabriel Bettencourt Vieira
+

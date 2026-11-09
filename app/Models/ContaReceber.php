@@ -65,7 +65,16 @@ class ContaReceber extends Model
                 $query->where('status', 'pendente')
                     ->whereDate('data_vencimento', '<', today());
             })
-            ->when(in_array($status, ['pendente', 'pago', 'cancelado'], true), function (Builder $query) use ($status) {
+            // Virtual filter used by the clickable "Total a receber" card: every pending account.
+            ->when($status === 'a_receber', function (Builder $query) {
+                $query->where('status', 'pendente');
+            })
+            // Keep the "Pendente" filter exclusive from "Vencido": overdue pendentes show up as vencidas.
+            ->when($status === 'pendente', function (Builder $query) {
+                $query->where('status', 'pendente')
+                    ->whereDate('data_vencimento', '>=', today());
+            })
+            ->when(in_array($status, ['pago', 'cancelado'], true), function (Builder $query) use ($status) {
                 $query->where('status', $status);
             })
             ->when($filtros['vencimento_de'] ?? null, function (Builder $query, string $data) {

@@ -1,4 +1,4 @@
-# Instalação (guia rápido)
+﻿# Instalação (guia rápido)
 
 Este projeto usa **Laravel 9 + SQLite**. O fluxo abaixo assume uma máquina de desenvolvimento com **PHP 8.0+**, **Composer**, **Git** e a extensão **SQLite** já instalados. Não há MySQL, nem servidor web adicional: a aplicação sobe com `php artisan serve`.
 
@@ -92,7 +92,7 @@ php artisan migrate:fresh --seed
 php -v                       # PHP 8.0+
 composer -V                  # Composer 2.x
 php -m | grep -E 'pdo_sqlite|sqlite3|mbstring|openssl|fileinfo|tokenizer'
-php artisan test             # 7 testes passando (SQLite em memória)
+php artisan test             # 11 testes passando (SQLite em memória)
 ```
 
 ## Problemas comuns
@@ -104,3 +104,4 @@ php artisan test             # 7 testes passando (SQLite em memória)
 | `Database file at path [...] does not exist` | Faça o passo 5 e depois `php artisan migrate --seed`. |
 | Página em branco ou erro 500 | Rode `php artisan config:clear` e `php artisan view:clear`; consulte `storage/logs/laravel.log`. |
 | Porta 8000 ocupada | Suba em outra porta: `php artisan serve --port=8001`. |
+

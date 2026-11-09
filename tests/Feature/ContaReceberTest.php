@@ -170,9 +170,62 @@ class ContaReceberTest extends TestCase
         $response->assertStatus(422)->assertJsonValidationErrors(['cliente']);
     }
 
+    public function test_filtro_pendente_exclui_contas_vencidas(): void
+    {
+        $this->conta(['cliente' => 'Cliente Atrasado', 'data_vencimento' => today()->subDay()]);
+        $this->conta(['cliente' => 'Cliente Futuro', 'data_vencimento' => today()->addDays(3)]);
+
+        $this->get(route('contas-receber.index', ['status' => 'pendente']))
+            ->assertOk()
+            ->assertSee('Cliente Futuro')
+            ->assertDontSee('Cliente Atrasado');
+    }
+
+    public function test_filtro_a_receber_mostra_todas_as_pendentes(): void
+    {
+        $this->conta(['cliente' => 'Cliente Atrasado', 'data_vencimento' => today()->subDay()]);
+        $this->conta(['cliente' => 'Cliente Futuro', 'data_vencimento' => today()->addDays(3)]);
+        $this->conta(['cliente' => 'Cliente Recebido', 'status' => 'pago', 'data_vencimento' => today()->subDay(), 'data_pagamento' => today()]);
+
+        $this->get(route('contas-receber.index', ['status' => 'a_receber']))
+            ->assertOk()
+            ->assertSee('Cliente Atrasado')
+            ->assertSee('Cliente Futuro')
+            ->assertDontSee('Cliente Recebido');
+    }
+
+    public function test_dashboard_resumo_json_retorna_indicadores(): void
+    {
+        $this->conta(['valor' => 100.00, 'data_vencimento' => today()->subDay()]); // vencida
+        $this->conta(['valor' => 200.00, 'data_vencimento' => today()->addDays(3)]); // a vencer
+        $this->conta(['valor' => 300.00, 'status' => 'pago', 'data_pagamento' => today(), 'data_vencimento' => today()->subDays(1)]);
+
+        $this->getJson(route('dashboard.resumo'))
+            ->assertOk()
+            ->assertJson([
+                'a_receber' => 'R$ 300,00',
+                'recebido' => 'R$ 300,00',
+                'vencido' => 'R$ 100,00',
+                'aVencer' => 'R$ 200,00',
+                'quantidadeVencida' => 1,
+                'quantidadeAVencer' => 1,
+                'quantidadeRecebida' => 1,
+            ]);
+    }
+
+    public function test_cards_do_dashboard_ligam_filtros_correspondentes(): void
+    {
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('status=a_receber')
+            ->assertSee('status=pago')
+            ->assertSee('status=vencido')
+            ->assertSee('status=pendente');
+    }
+
     private function conta(array $atributos = []): ContaReceber
     {
-        return ContaReceber::create(array_merge([
+        return ContaReceber::factory()->create(array_merge([
             'cliente' => 'Cliente Teste',
             'descricao' => 'Conta de teste',
             'valor' => 100.00,

@@ -44,7 +44,7 @@
                             <label for="filtro_status" class="form-label">Status</label>
                             <select id="filtro_status" name="status" class="form-select">
                                 <option value="">Todos</option>
-                                @foreach (['pendente' => 'Pendente', 'pago' => 'Recebido', 'vencido' => 'Vencido', 'cancelado' => 'Cancelado'] as $valor => $rotulo)
+                                @foreach (['a_receber' => 'A receber', 'pendente' => 'Pendente', 'pago' => 'Recebido', 'vencido' => 'Vencido', 'cancelado' => 'Cancelado'] as $valor => $rotulo)
                                     <option value="{{ $valor }}" @selected(($filtros['status'] ?? '') === $valor)>{{ $rotulo }}</option>
                                 @endforeach
                             </select>
