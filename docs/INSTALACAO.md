@@ -307,11 +307,11 @@ php artisan migrate:status
 
 ## Linux (Ubuntu/Debian)
 
-Instale PHP, a extensão SQLite e o Composer:
+Instale o Git e o PHP com a extensão SQLite, além do Composer. Em uma VM/instalação nova, o Git também é necessário para clonar o repositório:
 
 ```bash
 sudo apt update
-sudo apt install -y php-cli php-sqlite3 php-mbstring php-xml php-curl php-zip unzip composer
+sudo apt install -y git php-cli php-sqlite3 php-mbstring php-xml php-curl php-zip unzip composer
 ```
 
 Depois, na pasta do projeto:
