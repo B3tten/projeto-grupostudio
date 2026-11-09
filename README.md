@@ -6,7 +6,7 @@ O sistema permite acompanhar os principais indicadores financeiros, cadastrar e 
 
 > **Vai rodar em outro computador, sem nada instalado?** Siga o guia [Instalação do zero](docs/INSTALACAO.md), com links de download, comandos e solução de problemas para Windows, Linux e macOS.
 
-> **XAMPP é opcional.** Ele só facilita obter PHP + MySQL no Windows; o Apache não é necessário. A aplicação roda com `php artisan serve` usando MySQL ou SQLite. O guia mostra as duas opções.
+> **O projeto usa SQLite.** Basta PHP + Composer; a aplicação roda com `php artisan serve`, sem servidor de banco nem servidor web adicional.
 
 ---
 
@@ -35,7 +35,7 @@ O sistema permite acompanhar os principais indicadores financeiros, cadastrar e 
 | Camada | Tecnologia |
 | --- | --- |
 | Backend | PHP 8+ / Laravel 9 |
-| Banco | MySQL (`app-crud`) ou SQLite |
+| Banco | SQLite (`database/database.sqlite`) |
 | Frontend | Blade + Bootstrap 5.3 (CDN) + Bootstrap Icons + JavaScript puro |
 | Build | Nenhum passo de build obrigatório (`npm` não é necessário para rodar) |
 | Testes | PHPUnit com SQLite em memória (`php artisan test`) |
@@ -108,14 +108,12 @@ Contas já recebidas ou canceladas não podem ser recebidas novamente; o sistema
 
 ## Como executar
 
-> Para um computador sem PHP, Composer, MySQL ou Git instalados, use o passo a passo completo em **[`docs/INSTALACAO.md`](docs/INSTALACAO.md)**. O resumo abaixo assume que as ferramentas já estão instaladas.
+> Para um computador sem PHP e Composer instalados, use o passo a passo completo em **[`docs/INSTALACAO.md`](docs/INSTALACAO.md)**. O resumo abaixo assume que PHP e Composer já estão configurados.
 
 ### Pré-requisitos
 
-- PHP **8.0+** com as extensões `pdo_mysql`, `mbstring`, `openssl`, `fileinfo` e `tokenizer`.
+- PHP **8.0+** com as extensões `pdo_sqlite`, `sqlite3`, `mbstring`, `openssl`, `fileinfo` e `tokenizer`.
 - [Composer](https://getcomposer.org/).
-- MySQL 5.7+ ou MariaDB, ou SQLite (alternativa sem servidor de banco; veja [`docs/INSTALACAO.md`](docs/INSTALACAO.md#81-alternativa-sqlite-sem-mysql-e-sem-xampp)).
-- Git (opcional, apenas para clonar/publicar o repositório).
 
 ### 1. Obter o código
 
@@ -152,37 +150,36 @@ Gere a chave da aplicação:
 php artisan key:generate
 ```
 
-O `.env.example` já vem com os valores usados no projeto:
+O `.env.example` já vem configurado para SQLite:
 
 ```env
 APP_NAME="Financeiro"
 APP_URL=http://localhost:8000
 
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=app-crud
-DB_USERNAME=root
-DB_PASSWORD=
+DB_CONNECTION=sqlite
 ```
 
-Ajuste `DB_USERNAME` e `DB_PASSWORD` se o seu MySQL usar outras credenciais.
+Não há usuário, senha nem servidor de banco para configurar. Se quiser usar outro arquivo SQLite, descomente `DB_DATABASE` no `.env` e informe o caminho absoluto.
 
 > O `.env` é pessoal e **não deve ser versionado**. O único arquivo de ambiente que vai para o Git é o `.env.example`, que contém apenas valores de exemplo.
 
 Para produção, use `APP_ENV=production`, `APP_DEBUG=false` e uma `APP_KEY` gerada no próprio servidor. A configuração completa está em [`docs/SEGURANCA.md`](docs/SEGURANCA.md).
 
-### 4. Criar o banco de dados
+### 4. Criar o banco SQLite
 
-Via terminal:
+O Laravel precisa que o arquivo do banco exista antes das migrações. Crie-o em `database/`:
 
-```bash
-mysql -u root -e "CREATE DATABASE \`app-crud\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```powershell
+New-Item database\database.sqlite -ItemType File
 ```
 
-Ou crie manualmente no phpMyAdmin um banco chamado **`app-crud`** com codificação `utf8mb4_unicode_ci`.
+No Linux/macOS:
 
-> O nome contém hífen, por isso precisa de crases no SQL.
+```bash
+touch database/database.sqlite
+```
+
+> O arquivo `database/database.sqlite` é ignorado pelo Git. Cada computador cria o seu.
 
 ### 5. Criar as tabelas e popular os dados fictícios
 
@@ -212,7 +209,7 @@ Acesse: **http://127.0.0.1:8000**
 php artisan test
 ```
 
-A suíte usa **SQLite em memória** (configurado em `phpunit.xml`), então não altera o banco MySQL de demonstração. Os testes cobrem:
+A suíte usa **SQLite em memória** (configurado em `phpunit.xml`), então não altera o arquivo `database/database.sqlite`. Os testes cobrem:
 
 - Cálculo dos quatro indicadores do dashboard.
 - Filtro de contas vencidas.
@@ -321,7 +318,7 @@ resources/views/
 
 routes/web.php                       # rotas do dashboard, CRUD, carga e recebimento
 logs/                                # logs diários por API (não versionados)
-  .htaccess                          # bloqueia acesso web aos logs no Apache
+  .htaccess                          # proteção extra contra acesso web aos logs
   .gitignore                         # ignora o conteúdo dos logs
 docs/
   INSTALACAO.md                      # passo a passo para computador sem nada instalado
@@ -349,14 +346,14 @@ O projeto foi configurado para não versionar arquivos sensíveis. O `.gitignore
 
 | Regra | Motivo |
 | --- | --- |
-| Nunca versionar `.env` | Contém `APP_KEY`, credenciais do banco e configuração do ambiente. |
+| Nunca versionar `.env` | Contém a `APP_KEY` e a configuração do ambiente. |
 | Nunca versionar `logs/` ou `storage/logs/` | Podem conter dados de clientes, valores e SQL executado. |
-| Document root do servidor em `public/` | Mantém `.env`, `logs/`, `storage/`, `database/` e `vendor/` fora da web. |
+| Em produção, document root em `public/` | Mantém `.env`, `logs/`, `storage/`, `database/` e `vendor/` fora da web. |
 | `APP_DEBUG=false` em produção | Evita expor stack traces, caminhos e SQL em erros. |
 | Autenticação antes de expor dados reais | O projeto é uma demonstração e não possui login. |
 | HTTPS em produção | Protege sessões, formulários e dados financeiros em trânsito. |
 
-O passo a passo completo de verificação, publicação, configuração de Apache/Nginx, permissões, rotação de segredos e checklist de produção está em [`docs/SEGURANCA.md`](docs/SEGURANCA.md).
+O passo a passo completo de verificação, publicação, configuração de servidor web, permissões, rotação de segredos e checklist de produção está em [`docs/SEGURANCA.md`](docs/SEGURANCA.md).
 
 > **Atenção:** se o `.env` ou os logs já foram commitados, remova-os do versionamento e **rotacione as credenciais**. O histórico do Git continua contendo o conteúdo antigo.
 
@@ -471,8 +468,6 @@ git remote add origin https://github.com/B3tten/projeto-grupostudio.git
 git push -u origin main
 ```
 
-> Se o Git ainda não estiver instalado no Windows, use `winget install --id Git.Git -e` ou baixe em [git-scm.com](https://git-scm.com/).
-
 > O `.gitignore` já exclui `vendor/`, `node_modules/`, `.env`, `/logs/*`, `storage/logs/*`, caches, bancos SQLite, dumps e chaves. O banco de demonstração é recriado com `php artisan migrate --seed`, então não é necessário versionar o arquivo do banco.
 
 ### 3. Se o `.env` ou logs já foram commitados
@@ -490,10 +485,9 @@ git push
 Depois:
 
 1. Rotacione a `APP_KEY` com `php artisan key:generate` se ela foi exposta.
-2. Troque a senha do banco se ela foi exposta.
-3. Se o repositório era público, limpe o histórico com `git filter-repo` ou BFG.
-4. Confira no GitHub se `.env` e logs sumiram da árvore atual.
+2. Se o repositório era público, limpe o histórico com `git filter-repo` ou BFG.
+3. Confira no GitHub se `.env` e logs sumiram da árvore atual.
 
-O passo a passo completo de segurança, incluindo Apache/Nginx, permissões e checklist de produção, está em [`docs/SEGURANCA.md`](docs/SEGURANCA.md).
+O passo a passo completo de segurança, incluindo servidor web, permissões e checklist de produção, está em [`docs/SEGURANCA.md`](docs/SEGURANCA.md).
 
 Repositório: https://github.com/B3tten/projeto-grupostudio

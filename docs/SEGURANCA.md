@@ -12,7 +12,7 @@ O `.gitignore` da raiz já bloqueia os itens abaixo. O `logs/.gitignore` e os `.
 
 | Caminho | Por que não versionar |
 | --- | --- |
-| `.env` | Contém `APP_KEY`, credenciais do banco e configurações do ambiente. |
+| `.env` | Contém a `APP_KEY` e as configurações do ambiente. |
 | `.env.*` (exceto `.env.example`) | Podem conter credenciais de staging/produção. |
 | `/logs/*` | Logs do middleware com URLs, dados de entrada e SQL executado. |
 | `/storage/logs/*` | Log padrão do Laravel, com stack traces e dados internos. |
@@ -20,7 +20,7 @@ O `.gitignore` da raiz já bloqueia os itens abaixo. O `logs/.gitignore` e os `.
 | `/storage/framework/cache/*` | Cache interno da aplicação. |
 | `/bootstrap/cache/*.php` | Configuração compilada, que pode conter segredos do `.env`. |
 | `/vendor/` | Dependências instaladas; são recriadas com `composer install`. |
-| `/node_modules/` | Dependências de frontend; são recriadas com `npm install`. |
+| `/node_modules/` | Dependências de frontend, se existirem; são recriadas com `npm install`. |
 | `/public/storage` | Link simbólico local para arquivos públicos. |
 | `/database/*.sqlite`, `*.sqlite3` | Banco local com dados reais ou de teste. |
 | `*.sql`, `*.sql.gz`, `*.dump` | Dumps de banco com dados sensíveis. |
@@ -42,7 +42,7 @@ O `.gitignore` da raiz já bloqueia os itens abaixo. O `logs/.gitignore` e os `.
 
 ## 2. Verificações antes de commitar
 
-Se o Git estiver instalado, rode na raiz do projeto:
+Rode na raiz do projeto:
 
 ```bash
 git status --ignored
@@ -86,9 +86,9 @@ git push
 Depois disso:
 
 1. **Rotacione o `APP_KEY`** (`php artisan key:generate`) se ela foi exposta.
-2. **Troque a senha do banco** se ela foi exposta.
+2. Se o arquivo `database/database.sqlite` foi commitado, remova-o do histórico: ele contém os dados financeiros.
 3. Se o repositório era público, considere limpar o histórico com `git filter-repo` ou BFG Repo-Cleaner.
-4. Verifique no GitHub se `.env` e logs desapareceram da árvore atual.
+4. Verifique no GitHub se `.env`, logs e o arquivo SQLite desapareceram da árvore atual.
 
 > `git rm --cached` mantém o arquivo no disco local; ele apenas para de ser rastreado.
 
@@ -105,17 +105,13 @@ APP_ENV=production
 APP_DEBUG=false
 APP_URL=https://seu-dominio.com
 
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=app-crud
-DB_USERNAME=usuario_do_banco
-DB_PASSWORD=uma_senha_forte
+DB_CONNECTION=sqlite
+# DB_DATABASE=/caminho/absoluto/para/database.sqlite
 ```
 
 - Nunca use `APP_DEBUG=true` em produção: stack traces podem expor caminhos, SQL e dados.
 - Gere uma `APP_KEY` única por ambiente com `php artisan key:generate`.
-- Use um usuário de banco com permissão apenas no banco da aplicação; não use `root`.
+- Mantenha o arquivo `database/database.sqlite` fora de `public/` e com permissão de leitura/escrita apenas para o usuário da aplicação.
 - Em HTTPS, configure `SESSION_SECURE_COOKIE=true`.
 
 ### 4.2 Document root do servidor
@@ -123,7 +119,13 @@ DB_PASSWORD=uma_senha_forte
 O servidor web deve apontar **somente para a pasta `public/`**:
 
 ```text
-DocumentRoot "D:/xampp/htdocs/projeto/public"
+DocumentRoot "/var/www/projeto/public"
+```
+
+No Windows, use o caminho onde o projeto foi clonado, por exemplo:
+
+```text
+DocumentRoot "C:/projetos/projeto-grupostudio/public"
 ```
 
 Nunca aponte para a raiz do projeto. Se a raiz for exposta, `.env`, `logs/`, `storage/`, `database/` e `vendor/` podem ficar acessíveis.
@@ -137,9 +139,9 @@ Exemplo de VirtualHost:
 ```apache
 <VirtualHost *:80>
     ServerName financeiro.local
-    DocumentRoot "D:/xampp/htdocs/projeto/public"
+    DocumentRoot "/var/www/projeto/public"
 
-    <Directory "D:/xampp/htdocs/projeto/public">
+    <Directory "/var/www/projeto/public">
         AllowOverride All
         Require all granted
     </Directory>
@@ -187,6 +189,7 @@ O `logs/.htaccess` só funciona no Apache. No Nginx, mantenha `logs/`, `storage/
 ### 4.5 Permissões
 
 - `.env`: leitura apenas pelo usuário da aplicação (`chmod 600` em Linux).
+- `database/database.sqlite` e seu diretório: leitura/escrita apenas pelo usuário da aplicação.
 - `storage/` e `bootstrap/cache/`: escrita pelo usuário do servidor web.
 - `logs/`: escrita pelo usuário da aplicação, leitura restrita.
 - Evite permissões `777`.
@@ -201,7 +204,7 @@ Os logs do middleware registram dados de entrada e SQL. Eles podem conter nomes 
 - Fazer rotação e descarte periódico.
 - Evitar registrar dados pessoais desnecessários em produção (princípio da minimização/LGPD).
 
-O `logs/.htaccess` bloqueia acesso via Apache, mas a proteção principal é manter o document root em `public/`.
+O `logs/.htaccess` bloqueia o acesso em servidores compatíveis, mas a proteção principal é manter o document root em `public/`.
 
 ### 4.7 Autenticação e autorização
 
