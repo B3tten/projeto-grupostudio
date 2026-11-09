@@ -6,6 +6,8 @@ O sistema permite acompanhar os principais indicadores financeiros, cadastrar e 
 
 > **Vai rodar em outro computador, sem nada instalado?** Siga o guia [Instalação do zero](docs/INSTALACAO.md), com links de download, comandos e solução de problemas para Windows, Linux e macOS.
 
+> **XAMPP é opcional.** Ele só facilita obter PHP + MySQL no Windows; o Apache não é necessário. A aplicação roda com `php artisan serve` usando MySQL ou SQLite. O guia mostra as duas opções.
+
 ---
 
 ## Sumário
@@ -33,7 +35,7 @@ O sistema permite acompanhar os principais indicadores financeiros, cadastrar e 
 | Camada | Tecnologia |
 | --- | --- |
 | Backend | PHP 8+ / Laravel 9 |
-| Banco | MySQL (`app-crud`) |
+| Banco | MySQL (`app-crud`) ou SQLite |
 | Frontend | Blade + Bootstrap 5.3 (CDN) + Bootstrap Icons + JavaScript puro |
 | Build | Nenhum passo de build obrigatório (`npm` não é necessário para rodar) |
 | Testes | PHPUnit com SQLite em memória (`php artisan test`) |
@@ -112,7 +114,7 @@ Contas já recebidas ou canceladas não podem ser recebidas novamente; o sistema
 
 - PHP **8.0+** com as extensões `pdo_mysql`, `mbstring`, `openssl`, `fileinfo` e `tokenizer`.
 - [Composer](https://getcomposer.org/).
-- MySQL 5.7+ ou MariaDB (ou SQLite, se preferir adaptar o `.env`).
+- MySQL 5.7+ ou MariaDB, ou SQLite (alternativa sem servidor de banco; veja [`docs/INSTALACAO.md`](docs/INSTALACAO.md#81-alternativa-sqlite-sem-mysql-e-sem-xampp)).
 - Git (opcional, apenas para clonar/publicar o repositório).
 
 ### 1. Obter o código

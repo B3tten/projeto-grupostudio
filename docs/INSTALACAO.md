@@ -2,7 +2,9 @@
 
 Guia passo a passo para rodar o projeto em um computador **sem nada instalado** (Windows 10/11). No fim há uma seção para Linux e macOS.
 
-O projeto é uma aplicação **Laravel 9 + MySQL** e usa Bootstrap, ícones e fontes via CDN. Por isso **não é necessário instalar Node.js/npm** para executá-lo.
+O projeto é uma aplicação **Laravel 9 + MySQL** (ou **SQLite**) e usa Bootstrap, ícones e fontes via CDN. Por isso **não é necessário instalar Node.js/npm** para executá-lo.
+
+> **XAMPP não é obrigatório.** Ele é apenas uma forma prática de obter PHP + MySQL no Windows. O Apache do XAMPP também não é necessário: a aplicação roda com `php artisan serve`. Se preferir não instalar MySQL, use a opção **SQLite** no passo 8.1 — nesse caso bastam PHP + Composer.
 
 > Tempo estimado: 20 a 30 minutos, incluindo downloads.
 
@@ -12,7 +14,7 @@ O projeto é uma aplicação **Laravel 9 + MySQL** e usa Bootstrap, ícones e fo
 
 | Ferramenta | Para que serve | Link oficial |
 | --- | --- | --- |
-| **XAMPP** (PHP 8.2 + MySQL/MariaDB + phpMyAdmin) | Servidor PHP e banco de dados | https://www.apachefriends.org/download.html |
+| **XAMPP** (PHP 8.2 + MySQL/MariaDB + phpMyAdmin) | Fornece PHP e MySQL; o Apache não é necessário | https://www.apachefriends.org/download.html |
 | **Composer** | Instala as dependências PHP do Laravel | https://getcomposer.org/download/ |
 | **Git para Windows** | Baixar o projeto do GitHub (opcional se usar o ZIP) | https://git-scm.com/download/win |
 | **Visual Studio Code** (opcional) | Editar o código | https://code.visualstudio.com/ |
@@ -42,6 +44,8 @@ php artisan serve
 ```
 
 Acesse `http://127.0.0.1:8000`.
+
+> Para usar **SQLite** (sem criar banco no MySQL), pule a criação do banco e siga o passo **8.1**.
 
 ---
 
@@ -215,7 +219,7 @@ Isso preenche `APP_KEY` no `.env`. Sem essa chave a aplicação não funciona.
 
 ## 8. Criar o banco de dados
 
-O projeto usa MySQL e espera um banco chamado **`app-crud`**.
+O projeto usa MySQL por padrão e espera um banco chamado **`app-crud`**. Se preferir não usar MySQL, veja a alternativa **SQLite** no passo 8.1.
 
 1. Confirme que o **MySQL está iniciado** no XAMPP Control Panel.
 2. Abra http://localhost/phpmyadmin.
@@ -257,6 +261,47 @@ DB_PASSWORD=
 
 - Se o usuário `root` do seu MySQL tiver senha, preencha `DB_PASSWORD`.
 - Se você criou outro usuário, ajuste `DB_USERNAME` e `DB_PASSWORD`.
+
+### 8.1 Alternativa: SQLite (sem MySQL e sem XAMPP)
+
+SQLite não precisa de servidor nem de usuário/senha. É o mesmo banco usado pelos testes automatizados. Se escolher esta opção, **pule o passo 8 acima**.
+
+1. Crie o arquivo do banco dentro de `database/`:
+
+**PowerShell:**
+
+```powershell
+New-Item database\database.sqlite -ItemType File
+```
+
+**Prompt de Comando (CMD):**
+
+```bat
+type nul > database\database.sqlite
+```
+
+2. No `.env`, troque a conexão e **comente** as linhas do MySQL:
+
+```env
+DB_CONNECTION=sqlite
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_DATABASE=app-crud
+# DB_USERNAME=root
+# DB_PASSWORD=
+```
+
+> É importante comentar `DB_DATABASE=app-crud`. Com SQLite, o Laravel usaria esse valor como caminho do arquivo. Sem a linha, ele usa automaticamente `database/database.sqlite`. Se quiser outro caminho, use `DB_DATABASE=C:\caminho\completo\database.sqlite`.
+
+3. Limpe o cache de configuração para o Laravel reler o `.env`:
+
+```powershell
+php artisan config:clear
+```
+
+4. Siga normalmente para o **passo 9** (`php artisan migrate --seed`).
+
+O arquivo `database/database.sqlite` é ignorado pelo Git (`database/.gitignore`), então cada computador cria o seu. Não é preciso versioná-lo.
 
 ---
 
@@ -360,6 +405,8 @@ Depois adicione `127.0.0.1 financeiro.local` ao arquivo `C:\Windows\System32\dri
 | `SQLSTATE[HY000] [2002] Connection refused` | MySQL parado | Inicie o MySQL no XAMPP Control Panel. |
 | `SQLSTATE[HY000] [1045] Access denied` | Usuário/senha do banco errados | Ajuste `DB_USERNAME` e `DB_PASSWORD` no `.env`. |
 | `Unknown database 'app-crud'` | Banco não criado | Execute o passo 8. |
+| `Database file at path [...] does not exist` | SQLite sem arquivo | Crie `database/database.sqlite` (passo 8.1). |
+| `Database [...] does not exist` usando SQLite | `DB_DATABASE=app-crud` ainda ativo | Comente `DB_DATABASE` no `.env` e rode `php artisan config:clear`. |
 | `No application encryption key has been specified` | `APP_KEY` vazia | Rode `php artisan key:generate`. |
 | Página em branco ou erro 500 | Cache/config antigos ou permissões | Rode `php artisan config:clear`, `php artisan view:clear` e consulte `storage/logs/laravel.log`. |
 | `Class not found` após copiar o projeto | Dependências/autoload desatualizados | Rode `composer install` e `composer dump-autoload`. |
