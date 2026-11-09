@@ -1,0 +1,52 @@
+# Dependencies and build artifacts
+/node_modules
+/public/hot
+/public/storage
+/vendor
+npm-debug.log
+yarn-error.log
+
+# Environment and secrets
+/.env
+/.env.*
+!/.env.example
+/auth.json
+/.git-credentials
+*.pem
+*.key
+*.p12
+*.pfx
+
+# Application logs (custom log middleware + Laravel logs)
+/logs/*
+!/logs/.gitignore
+!/logs/.htaccess
+*.log
+/storage/logs/*
+!/storage/logs/.gitignore
+
+# Database files and dumps
+/database/*.sqlite
+/database/*.sqlite3
+/database/database.sqlite
+*.sql
+*.sql.gz
+*.dump
+
+# Laravel runtime and caches
+/storage/*.key
+/bootstrap/cache/*.php
+/.phpunit.result.cache
+/.phpunit.cache
+
+# Local tooling
+docker-compose.override.yml
+Homestead.json
+Homestead.yaml
+
+# IDE and operating system files
+/.idea
+/.vscode
+.DS_Store
+Thumbs.db
+desktop.ini
