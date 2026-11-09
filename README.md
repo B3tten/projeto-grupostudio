@@ -4,7 +4,7 @@ Aplicação web de gestão financeira focada em **contas a receber**, desenvolvi
 
 O sistema permite acompanhar os principais indicadores financeiros, cadastrar e manter recebíveis, pesquisar/filtrar registros e registrar recebimentos. O layout é responsivo e usa apenas **Blade, Bootstrap 5 e JavaScript puro** (sem framework de frontend).
 
-> **Vai rodar em outro computador, sem nada instalado?** Siga o guia [Instalação do zero](docs/INSTALACAO.md), com links de download, comandos e solução de problemas para Windows, Linux e macOS.
+> **Vai rodar em outra máquina?** Siga o passo a passo curto em [`docs/INSTALACAO.md`](docs/INSTALACAO.md) (ambiente de desenvolvimento com PHP, Composer, Git e SQLite já instalados).
 
 > **O projeto usa SQLite.** Basta PHP + Composer; a aplicação roda com `php artisan serve`, sem servidor de banco nem servidor web adicional.
 
@@ -16,7 +16,7 @@ O sistema permite acompanhar os principais indicadores financeiros, cadastrar e 
 - [Funcionalidades](#funcionalidades)
 - [Regras de negócio](#regras-de-negócio)
 - [Como executar](#como-executar)
-- [Instalação do zero](docs/INSTALACAO.md)
+- [Instalação (guia rápido)](docs/INSTALACAO.md)
 - [Dados de demonstração](#dados-de-demonstração)
 - [Carga de arquivos CSV/OFX](#carga-de-arquivos-csvofx)
 - [Logs de requisições](#logs-de-requisições)
@@ -108,7 +108,7 @@ Contas já recebidas ou canceladas não podem ser recebidas novamente; o sistema
 
 ## Como executar
 
-> Para um computador sem PHP e Composer instalados, use o passo a passo completo em **[`docs/INSTALACAO.md`](docs/INSTALACAO.md)**. O resumo abaixo assume que PHP e Composer já estão configurados.
+> Em uma máquina com PHP, Composer, Git e SQLite já instalados, siga o **[`docs/INSTALACAO.md`](docs/INSTALACAO.md)** — a versão resumida deste mesmo passo a passo. A seguir está o detalhamento completo.
 
 ### Pré-requisitos
 
@@ -324,7 +324,7 @@ logs/                                # logs diários por API (não versionados)
   .htaccess                          # proteção extra contra acesso web aos logs
   .gitignore                         # ignora o conteúdo dos logs
 docs/
-  INSTALACAO.md                      # passo a passo para computador sem nada instalado
+  INSTALACAO.md                      # guia rápido: clone → composer → artisan serve
   PROCESSO.md                        # processo de desenvolvimento
   USO_DE_IA.md                       # relato de uso de IA
   SEGURANCA.md                       # arquivos sensíveis e checklist de segurança
